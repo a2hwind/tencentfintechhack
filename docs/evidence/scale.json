@@ -1,0 +1,127 @@
+{
+  "meta": {
+    "generated": "2026-09-26 14:13 UTC",
+    "machine": "Python 3.11.15, x86_64, 2 vCPU",
+    "hash_embedder_chunks_per_s": 5052.0,
+    "users": 1000
+  },
+  "results": [
+    {
+      "target_chunks": 1000,
+      "documents": 172,
+      "chunks": 1025,
+      "users": 1000,
+      "ingest_s": 0.8,
+      "ingest_docs_per_s": 212.5,
+      "ingest_chunks_per_s": 1266.1,
+      "vector_index": {
+        "rows": 1025,
+        "items": 172,
+        "principals": 249,
+        "dim": 256,
+        "memory_mb": 1.0
+      },
+      "check_s": 1.5,
+      "queries": 300,
+      "fts_mismatches": 0,
+      "vector_mismatches": 0,
+      "unpermitted_returned": 0,
+      "fts_ms": {
+        "p50": 0.436,
+        "p95": 1.347
+      },
+      "vector_ms": {
+        "p50": 0.111,
+        "p95": 0.171
+      },
+      "retrieve_ms": {
+        "p50": 4.701,
+        "p95": 14.055
+      },
+      "tokens_per_user": {
+        "median": 40.0,
+        "max": 103
+      },
+      "postfilter_recall_mean": 0.602,
+      "postfilter_short_queries": 98
+    },
+    {
+      "target_chunks": 10000,
+      "documents": 1719,
+      "chunks": 10008,
+      "users": 1000,
+      "ingest_s": 7.6,
+      "ingest_docs_per_s": 227.2,
+      "ingest_chunks_per_s": 1323.0,
+      "vector_index": {
+        "rows": 10008,
+        "items": 1719,
+        "principals": 984,
+        "dim": 256,
+        "memory_mb": 10.2
+      },
+      "check_s": 5.2,
+      "queries": 300,
+      "fts_mismatches": 0,
+      "vector_mismatches": 0,
+      "unpermitted_returned": 0,
+      "fts_ms": {
+        "p50": 1.322,
+        "p95": 3.765
+      },
+      "vector_ms": {
+        "p50": 0.321,
+        "p95": 0.94
+      },
+      "retrieve_ms": {
+        "p50": 14.802,
+        "p95": 32.702
+      },
+      "tokens_per_user": {
+        "median": 44.0,
+        "max": 118
+      },
+      "postfilter_recall_mean": 0.371,
+      "postfilter_short_queries": 125
+    },
+    {
+      "target_chunks": 100000,
+      "documents": 17192,
+      "chunks": 100501,
+      "users": 1000,
+      "ingest_s": 79.3,
+      "ingest_docs_per_s": 216.7,
+      "ingest_chunks_per_s": 1266.9,
+      "vector_index": {
+        "rows": 100501,
+        "items": 17192,
+        "principals": 2973,
+        "dim": 256,
+        "memory_mb": 102.9
+      },
+      "check_s": 55.7,
+      "queries": 300,
+      "fts_mismatches": 0,
+      "vector_mismatches": 0,
+      "unpermitted_returned": 0,
+      "fts_ms": {
+        "p50": 10.123,
+        "p95": 33.658
+      },
+      "vector_ms": {
+        "p50": 2.954,
+        "p95": 7.02
+      },
+      "retrieve_ms": {
+        "p50": 119.872,
+        "p95": 333.23
+      },
+      "tokens_per_user": {
+        "median": 31.0,
+        "max": 108
+      },
+      "postfilter_recall_mean": 0.22,
+      "postfilter_short_queries": 142
+    }
+  ]
+}

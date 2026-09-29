@@ -1,0 +1,11 @@
+data/
+ui/
+tests/
+docs/
+.git/
+**/__pycache__/
+*.db
+*.key
+.env
+.venv/
+venv/

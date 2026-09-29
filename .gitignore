@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Runtime data: index, audit chain and signing key are created on first start
+data/
+*.db
+*.db-journal
+*.key
+
+# Node / Next.js
+ui/node_modules/
+ui/.next/
+ui/out/
+ui/next-env.d.ts
+
+# Environment
+.env
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/

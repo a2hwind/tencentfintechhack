@@ -1,0 +1,62 @@
+# One Tencent Cloud Lighthouse / CVM instance in Singapore runs all three:
+#   caddy (HTTPS) -> ui (Next.js) and /api -> api (FastAPI)
+#
+#   docker compose up -d --build
+#   SITE_ADDRESS=brain.example.com docker compose up -d --build   # real domain => automatic HTTPS
+services:
+  api:
+    build: .
+    environment:
+      BRAIN_DATA_DIR: /data
+      SYNC_INTERVAL_S: "60"
+      ENTITLEMENT_TTL_S: "60"
+      CHECKPOINT_EVERY: "5"
+      EMBEDDINGS: ${EMBEDDINGS:-hash}
+      # Leave LLM_API_KEY empty to run the deterministic stubs.
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL_PLANNER: ${LLM_MODEL_PLANNER:-hy3}
+      LLM_MODEL_ANSWER: ${LLM_MODEL_ANSWER:-hy3}
+      LLM_EXTRA_BODY: ${LLM_EXTRA_BODY:-}
+      VERIFIER: ${VERIFIER:-lexical}
+      NO_RESULT_MIN_LATENCY_MS: ${NO_RESULT_MIN_LATENCY_MS:-25}
+      # Slack: mock by default; real workspace with a bot token. Events: https://<host>/api/webhooks/slack
+      SLACK_MODE: ${SLACK_MODE:-mock}
+      SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN:-}
+      SLACK_SIGNING_SECRET: ${SLACK_SIGNING_SECRET:-}
+      SLACK_USER_MAP: ${SLACK_USER_MAP:-}
+      # Same-origin behind Caddy, so CORS is only needed for local UI development.
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+    volumes:
+      - brain-data:/data
+    restart: unless-stopped
+
+  ui:
+    build:
+      context: ./ui
+      args:
+        NEXT_PUBLIC_API_URL: /api
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - ui
+      - api
+    restart: unless-stopped
+
+volumes:
+  brain-data:
+  caddy-data:
+  caddy-config:

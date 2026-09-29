@@ -1,0 +1,783 @@
+{
+  "meta": {
+    "generated": "2026-09-26 14:22 UTC",
+    "answerer": "extractive-stub",
+    "planner": "heuristic",
+    "verifier": "lexical",
+    "floors": {
+      "answered_when_expected": 0.95,
+      "no_result_when_expected": 1.0,
+      "fact_recall": 0.9,
+      "citation_recall": 0.9,
+      "citation_precision": 0.7,
+      "grounded_sentences": 1.0
+    }
+  },
+  "summary": {
+    "cases": 28,
+    "answerable": 21,
+    "negatives": 7,
+    "answered_when_expected": 1.0,
+    "no_result_when_expected": 1.0,
+    "fact_recall": 1.0,
+    "citation_recall": 1.0,
+    "citation_precision": 0.758,
+    "grounded_sentences": 1.0,
+    "leaks": 0,
+    "latency_ms_median": 16.0,
+    "models": [
+      "extractive-stub"
+    ],
+    "categories": {
+      "lookup": {
+        "cases": 12,
+        "outcome_ok": 12,
+        "facts_found": 16,
+        "facts_total": 16
+      },
+      "status": {
+        "cases": 3,
+        "outcome_ok": 3,
+        "facts_found": 6,
+        "facts_total": 6
+      },
+      "procedure": {
+        "cases": 1,
+        "outcome_ok": 1,
+        "facts_found": 2,
+        "facts_total": 2
+      },
+      "cross_platform": {
+        "cases": 2,
+        "outcome_ok": 2,
+        "facts_found": 5,
+        "facts_total": 5
+      },
+      "privileged": {
+        "cases": 2,
+        "outcome_ok": 2,
+        "facts_found": 2,
+        "facts_total": 2
+      },
+      "dlp": {
+        "cases": 1,
+        "outcome_ok": 1,
+        "facts_found": 1,
+        "facts_total": 1
+      },
+      "restricted": {
+        "cases": 5,
+        "outcome_ok": 5,
+        "facts_found": 0,
+        "facts_total": 0
+      },
+      "unanswerable": {
+        "cases": 2,
+        "outcome_ok": 2,
+        "facts_found": 0,
+        "facts_total": 0
+      }
+    }
+  },
+  "cases": [
+    {
+      "id": "auth-token-lifetime",
+      "user": "jdoe",
+      "category": "lookup",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        1,
+        1
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "confluence:7201",
+        "slack:C0AUTH:1789568549.000700"
+      ],
+      "grounded": [
+        4,
+        4
+      ],
+      "leaks": [],
+      "answer": "Decision: the auth service issues short-lived access tokens (15 minutes) with rotating refresh tokens, and all public clients use PKCE [doc:confluence:7201]. Rejected alternative: long-lived opaque sessions in the database, because they make revocation cheap but every API call pays a database round trip [doc:confluence:7201]. Michelle Lim: Auth service design: proposal is short-lived access tokens with rotating refresh tokens, PKCE everywhere, revocation list in Redis [doc:slack:C0AUTH:1789568549.000700]. Can we cap access tokens at 15 minutes so revocation lands within one lifetime [doc:slack:C0AUTH:1789568549.000700]."
+    },
+    {
+      "id": "auth-rejected-alternative",
+      "user": "jdoe",
+      "category": "lookup",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        1,
+        1
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "confluence:8812",
+        "confluence:7201",
+        "slack:C0AUTH:1789568549.000700"
+      ],
+      "grounded": [
+        6,
+        6
+      ],
+      "leaks": [],
+      "answer": "Payment-service incident runbook (owner: payments on-call) [doc:confluence:8812]. Step 1: Confirm the alert in #incidents and page the payments on-call engineer [doc:confluence:8812]. Session revocation is handled by a revocation list in Redis checked on every refresh, which lets us log out a compromised session within one token lifetime [doc:confluence:7201]. Rejected alternative: long-lived opaque sessions in the database, because they make revocation cheap but every API call pays a database round trip [doc:confluence:7201]. Michelle Lim: Auth service design: proposal is short-lived access tokens with rotating refresh tokens, PKCE everywhere, revocation list in Redis [doc:slack:C0AUTH:1789568549.000700]. Jane Doe: Refresh rotation is fine [doc:slack:C0AUTH:1789568549.000700]."
+    },
+    {
+      "id": "gateway-region",
+      "user": "jdoe",
+      "category": "lookup",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        2,
+        2
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "jira:PAY-231",
+        "confluence:8813",
+        "gdrive:1postmortemQ2",
+        "slack:C0INC:1783952549.000400"
+      ],
+      "grounded": [
+        7,
+        7
+      ],
+      "leaks": [],
+      "answer": "Follow-up from the Q2 payment outage postmortem [doc:jira:PAY-231]. Replace the manual paygw-rotate runbook step with a scheduled job that rotates the acquirer mTLS client certificate 14 days before expiry and alerts if rotation fails [doc:jira:PAY-231]. The payment gateway is a stateless Go service in ap-southeast-1 behind an internal load balancer [doc:confluence:8813]. It terminates merchant TLS, validates requests, and forwards to the acquirer through an mTLS upstream whose client certificate is rotated every 90 days [doc:confluence:8813]. Root cause: the acquirer mTLS client certificate on the payment gateway expired at 03:00 and rotation was a manual runbook step that nobody was paged for [doc:gdrive:1postmortemQ2]. Follow-ups: PAY-231 automates the certificate rotation with a scheduled job, and PAY-232 adds a synthetic checkout probe so a gateway 502 pages within two minutes [doc:gdrive:1postmortemQ2]. Ho Ming: Upstream mTLS client certificate expired at 03:00 [doc:slack:C0INC:1783952549.000400]."
+    },
+    {
+      "id": "cert-rotation-period",
+      "user": "mlim",
+      "category": "lookup",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        1,
+        1
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "confluence:8812",
+        "jira:PAY-231",
+        "confluence:8813",
+        "gdrive:1postmortemQ2"
+      ],
+      "grounded": [
+        7,
+        7
+      ],
+      "leaks": [],
+      "answer": "Step 2: Check gateway health at /internal/health and the upstream certificate expiry with paygw-cert-status [doc:confluence:8812]. Step 3: If the upstream certificate has expired or is within 24 hours of expiry, rotate it with the paygw-rotate job and restart the gateway pods one availability zone at a time [doc:confluence:8812]. Replace the manual paygw-rotate runbook step with a scheduled job that rotates the acquirer mTLS client certificate 14 days before expiry and alerts if rotation fails [doc:jira:PAY-231]. Job is in staging; production rollout waits on the cert-manager upgrade [doc:jira:PAY-231]. It terminates merchant TLS, validates requests, and forwards to the acquirer through an mTLS upstream whose client certificate is rotated every 90 days [doc:confluence:8813]. A standby gateway in ap-southeast-1b receives 0% of DNS weight in normal operation and is promoted during failover [doc:confluence:8813]. Root cause: the acquirer mTLS client certificate on the payment gateway expired at 03:00 and rotation was a manual runbook step that nobody was paged for [doc:gdrive:1postmortemQ2]."
+    },
+    {
+      "id": "gateway-failover",
+      "user": "jdoe",
+      "category": "lookup",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        1,
+        1
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "jira:PAY-231",
+        "confluence:8813",
+        "gdrive:1postmortemQ2",
+        "slack:C0INC:1783952549.000400"
+      ],
+      "grounded": [
+        7,
+        7
+      ],
+      "leaks": [],
+      "answer": "Replace the manual paygw-rotate runbook step with a scheduled job that rotates the acquirer mTLS client certificate 14 days before expiry and alerts if rotation fails [doc:jira:PAY-231]. Job is in staging; production rollout waits on the cert-manager upgrade [doc:jira:PAY-231]. It terminates merchant TLS, validates requests, and forwards to the acquirer through an mTLS upstream whose client certificate is rotated every 90 days [doc:confluence:8813]. A standby gateway in ap-southeast-1b receives 0% of DNS weight in normal operation and is promoted during failover [doc:confluence:8813]. Root cause: the acquirer mTLS client certificate on the payment gateway expired at 03:00 and rotation was a manual runbook step that nobody was paged for [doc:gdrive:1postmortemQ2]. Follow-ups: PAY-231 automates the certificate rotation with a scheduled job, and PAY-232 adds a synthetic checkout probe so a gateway 502 pages within two minutes [doc:gdrive:1postmortemQ2]. Ho Ming: Upstream mTLS client certificate expired at 03:00 [doc:slack:C0INC:1783952549.000400]."
+    },
+    {
+      "id": "orders-table-size",
+      "user": "jr-tan",
+      "category": "lookup",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        1,
+        1
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "jira:DBM-42",
+        "slack:C0DBM:1790000549.000200",
+        "gdrive:1cutoverplan"
+      ],
+      "grounded": [
+        5,
+        5
+      ],
+      "leaks": [],
+      "answer": "Migration of the orders table (1.2 TB) to the new PostgreSQL 16 cluster using logical replication [doc:jira:DBM-42]. Progress: 60% of partitions copied and verified [doc:jira:DBM-42]. Jane Doe: Migration status: 60% of the orders partitions are copied to the PostgreSQL 16 cluster and verified [doc:slack:C0DBM:1790000549.000200]. DBM-42 has the running notes [doc:slack:C0DBM:1790000549.000200]. Cutover plan for the orders table migration (DBM-42) [doc:gdrive:1cutoverplan]."
+    },
+    {
+      "id": "cutover-date",
+      "user": "jdoe",
+      "category": "lookup",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        2,
+        2
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "jira:DBM-42",
+        "gdrive:1cutoverplan"
+      ],
+      "grounded": [
+        3,
+        3
+      ],
+      "leaks": [],
+      "answer": "Migration of the orders table (1.2 TB) to the new PostgreSQL 16 cluster using logical replication [doc:jira:DBM-42]. Cutover is planned for Tuesday 29 September in the 02:00-04:00 SGT window, pending a clean second dry run [doc:jira:DBM-42]. Cutover plan for the orders table migration (DBM-42) [doc:gdrive:1cutoverplan]."
+    },
+    {
+      "id": "cutover-rollback",
+      "user": "jr-tan",
+      "category": "lookup",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        1,
+        1
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "jira:DBM-45",
+        "gdrive:1cutoverplan",
+        "slack:C0DBM:1790173349.000100",
+        "jira:DBM-42"
+      ],
+      "grounded": [
+        7,
+        7
+      ],
+      "leaks": [],
+      "answer": "The staging replica is lagging about 40 minutes behind primary, which makes the consistency check fail at the end of the cutover dry run [doc:jira:DBM-45]. Blocked on infra resizing the replica volume; the resize is scheduled for Thursday [doc:jira:DBM-45]. Cutover plan for the orders table migration (DBM-42) [doc:gdrive:1cutoverplan]. Rollback is a connection-string revert within the same window [doc:gdrive:1cutoverplan]. Jane Doe: Raised DBM-45 for it [doc:slack:C0DBM:1790173349.000100]. Infra says the replica volume resize lands on Thursday [doc:slack:C0DBM:1790173349.000100]. Cutover is planned for Tuesday 29 September in the 02:00-04:00 SGT window, pending a clean second dry run [doc:jira:DBM-42]."
+    },
+    {
+      "id": "synthetic-probe",
+      "user": "jdoe",
+      "category": "lookup",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        1,
+        1
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "jira:PAY-232"
+      ],
+      "grounded": [
+        2,
+        2
+      ],
+      "leaks": [],
+      "answer": "Follow-up from the Q2 payment outage postmortem [doc:jira:PAY-232]. A synthetic checkout every 60 seconds from two regions, paging when two consecutive probes fail [doc:jira:PAY-232]."
+    },
+    {
+      "id": "vendor-webhook-retries",
+      "user": "jdoe",
+      "category": "lookup",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        2,
+        2
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "slack:C0VEND:1789827749.000900",
+        "gdrive:1vendorspec"
+      ],
+      "grounded": [
+        4,
+        4
+      ],
+      "leaks": [],
+      "answer": "Lee Wei: Vendor portal API spec v2 is uploaded to the shared Vendor portal folder [doc:slack:C0VEND:1789827749.000900]. Main change: webhook retries with exponential backoff [doc:slack:C0VEND:1789827749.000900]. Vendor portal API specification, version 2 [doc:gdrive:1vendorspec]. Webhooks are retried with exponential backoff (1, 2, 4, 8 minutes) up to five attempts, and every delivery carries an idempotency key so a duplicate retry is ignored [doc:gdrive:1vendorspec]."
+    },
+    {
+      "id": "vendor-webhook-retries-contractor",
+      "user": "ctr-lee",
+      "category": "lookup",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        1,
+        1
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "slack:C0VEND:1789827749.000900",
+        "gdrive:1vendorspec"
+      ],
+      "grounded": [
+        4,
+        4
+      ],
+      "leaks": [],
+      "answer": "Lee Wei: Vendor portal API spec v2 is uploaded to the shared Vendor portal folder [doc:slack:C0VEND:1789827749.000900]. Main change: webhook retries with exponential backoff [doc:slack:C0VEND:1789827749.000900]. Vendor portal API specification, version 2 [doc:gdrive:1vendorspec]. Webhooks are retried with exponential backoff (1, 2, 4, 8 minutes) up to five attempts, and every delivery carries an idempotency key so a duplicate retry is ignored [doc:gdrive:1vendorspec]."
+    },
+    {
+      "id": "onboarding",
+      "user": "jr-tan",
+      "category": "lookup",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        2,
+        2
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "slack:C0INC:1783952549.000400",
+        "gdrive:1onboarding"
+      ],
+      "grounded": [
+        5,
+        5
+      ],
+      "leaks": [],
+      "answer": "Jane Doe: Payment gateway returning 502s for all merchants since 03:10 [doc:slack:C0INC:1783952549.000400]. Ho Ming: Upstream mTLS client certificate expired at 03:00 [doc:slack:C0INC:1783952549.000400]. Jane Doe: Recovered at 04:08 after the certificate rotation and gateway restart [doc:slack:C0INC:1783952549.000400]. Postmortem doc is in the Engineering drive [doc:slack:C0INC:1783952549.000400]. Engineering onboarding checklist: laptop, SSO, Slack channels, Confluence spaces, and the on-call shadowing schedule for the first month [doc:gdrive:1onboarding]."
+    },
+    {
+      "id": "scenario-1-status",
+      "user": "jdoe",
+      "category": "status",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        2,
+        2
+      ],
+      "citation_groups": [
+        2,
+        2
+      ],
+      "cited": [
+        "jira:DBM-42",
+        "jira:DBM-45",
+        "slack:C0DBM:1790000549.000200",
+        "slack:C0DBM:1790173349.000100"
+      ],
+      "grounded": [
+        7,
+        7
+      ],
+      "leaks": [],
+      "answer": "Migration of the orders table (1.2 TB) to the new PostgreSQL 16 cluster using logical replication [doc:jira:DBM-42]. Progress: 60% of partitions copied and verified [doc:jira:DBM-42]. The staging replica is lagging about 40 minutes behind primary, which makes the consistency check fail at the end of the cutover dry run [doc:jira:DBM-45]. Blocked on infra resizing the replica volume; the resize is scheduled for Thursday [doc:jira:DBM-45]. Jane Doe: Migration status: 60% of the orders partitions are copied to the PostgreSQL 16 cluster and verified [doc:slack:C0DBM:1790000549.000200]. DBM-42 has the running notes [doc:slack:C0DBM:1790000549.000200]. Tan Jun: Blocker: staging replica lag is at 40 minutes again and the cutover dry run keeps failing on the final consistency check [doc:slack:C0DBM:1790173349.000100]."
+    },
+    {
+      "id": "dry-run-blocker",
+      "user": "jr-tan",
+      "category": "status",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        2,
+        2
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "gdrive:1cutoverplan",
+        "jira:DBM-45",
+        "jira:DBM-42",
+        "slack:C0DBM:1790173349.000100"
+      ],
+      "grounded": [
+        7,
+        7
+      ],
+      "leaks": [],
+      "answer": "Cutover plan for the orders table migration (DBM-42) [doc:gdrive:1cutoverplan]. Freeze writes at 02:00 SGT, let logical replication drain, run the consistency check, switch the application connection string, and unfreeze [doc:gdrive:1cutoverplan]. The staging replica is lagging about 40 minutes behind primary, which makes the consistency check fail at the end of the cutover dry run [doc:jira:DBM-45]. Blocked on infra resizing the replica volume; the resize is scheduled for Thursday [doc:jira:DBM-45]. Cutover is planned for Tuesday 29 September in the 02:00-04:00 SGT window, pending a clean second dry run [doc:jira:DBM-42]. Tan Jun: Blocker: staging replica lag is at 40 minutes again and the cutover dry run keeps failing on the final consistency check [doc:slack:C0DBM:1790173349.000100]. I will rotate it after the dry run [doc:slack:C0DBM:1790173349.000100]."
+    },
+    {
+      "id": "scenario-2-runbook",
+      "user": "jdoe",
+      "category": "procedure",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        2,
+        2
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "confluence:8812"
+      ],
+      "grounded": [
+        5,
+        5
+      ],
+      "leaks": [],
+      "answer": "Payment-service incident runbook (owner: payments on-call) [doc:confluence:8812]. Step 1: Confirm the alert in #incidents and page the payments on-call engineer [doc:confluence:8812]. Step 2: Check gateway health at /internal/health and the upstream certificate expiry with paygw-cert-status [doc:confluence:8812]. Step 3: If the upstream certificate has expired or is within 24 hours of expiry, rotate it with the paygw-rotate job and restart the gateway pods one availability zone at a time [doc:confluence:8812]. Escalation: involve the security lead for any suspected data exposure, and open a PAY ticket for every incident (see PAY-231 for the certificate rotation automation) [doc:confluence:8812]."
+    },
+    {
+      "id": "cert-automation-status",
+      "user": "mlim",
+      "category": "status",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        2,
+        2
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "confluence:8812",
+        "slack:C0PAY:1790086949.000600",
+        "jira:PAY-231",
+        "gdrive:1postmortemQ2"
+      ],
+      "grounded": [
+        7,
+        7
+      ],
+      "leaks": [],
+      "answer": "Step 3: If the upstream certificate has expired or is within 24 hours of expiry, rotate it with the paygw-rotate job and restart the gateway pods one availability zone at a time [doc:confluence:8812]. Escalation: involve the security lead for any suspected data exposure, and open a PAY ticket for every incident (see PAY-231 for the certificate rotation automation) [doc:confluence:8812]. Jane Doe: PAY-231 certificate rotation job is running in staging and rotated the test certificate cleanly last night [doc:slack:C0PAY:1790086949.000600]. Production rollout after the cert-manager upgrade next sprint [doc:slack:C0PAY:1790086949.000600]. Follow-up from the Q2 payment outage postmortem [doc:jira:PAY-231]. Job is in staging; production rollout waits on the cert-manager upgrade [doc:jira:PAY-231]. Root cause: the acquirer mTLS client certificate on the payment gateway expired at 03:00 and rotation was a manual runbook step that nobody was paged for [doc:gdrive:1postmortemQ2]."
+    },
+    {
+      "id": "cross-platform-root-cause",
+      "user": "jdoe",
+      "category": "cross_platform",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        3,
+        3
+      ],
+      "citation_groups": [
+        2,
+        2
+      ],
+      "cited": [
+        "gdrive:1postmortemQ2",
+        "jira:PAY-231",
+        "jira:PAY-232"
+      ],
+      "grounded": [
+        6,
+        6
+      ],
+      "leaks": [],
+      "answer": "Root cause: the acquirer mTLS client certificate on the payment gateway expired at 03:00 and rotation was a manual runbook step that nobody was paged for [doc:gdrive:1postmortemQ2]. Follow-ups: PAY-231 automates the certificate rotation with a scheduled job, and PAY-232 adds a synthetic checkout probe so a gateway 502 pages within two minutes [doc:gdrive:1postmortemQ2]. Follow-up from the Q2 payment outage postmortem [doc:jira:PAY-231]. Replace the manual paygw-rotate runbook step with a scheduled job that rotates the acquirer mTLS client certificate 14 days before expiry and alerts if rotation fails [doc:jira:PAY-231]. Follow-up from the Q2 payment outage postmortem [doc:jira:PAY-232]. Paging routed to the payments on-call rotation [doc:jira:PAY-232]."
+    },
+    {
+      "id": "outage-duration",
+      "user": "sec-ho",
+      "category": "cross_platform",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        2,
+        2
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "jira:PAY-231",
+        "gdrive:1postmortemQ2",
+        "jira:PAY-232"
+      ],
+      "grounded": [
+        5,
+        5
+      ],
+      "leaks": [],
+      "answer": "Follow-up from the Q2 payment outage postmortem [doc:jira:PAY-231]. Replace the manual paygw-rotate runbook step with a scheduled job that rotates the acquirer mTLS client certificate 14 days before expiry and alerts if rotation fails [doc:jira:PAY-231]. Impact: all merchant checkouts failed with HTTP 502 for 58 minutes on 14 June between 03:10 and 04:08 SGT [doc:gdrive:1postmortemQ2]. Follow-ups: PAY-231 automates the certificate rotation with a scheduled job, and PAY-232 adds a synthetic checkout probe so a gateway 502 pages within two minutes [doc:gdrive:1postmortemQ2]. Follow-up from the Q2 payment outage postmortem [doc:jira:PAY-232]."
+    },
+    {
+      "id": "breach-containment-security",
+      "user": "sec-ho",
+      "category": "privileged",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        1,
+        1
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "confluence:9001",
+        "gdrive:1forensicsQ3",
+        "slack:D0JDSH:1789741349.001000",
+        "slack:C0SEC:1789222949.000800"
+      ],
+      "grounded": [
+        7,
+        7
+      ],
+      "leaks": [],
+      "answer": "On 4 August a misconfigured object storage bucket exposed export files containing merchant contact details for roughly six hours before the alert fired [doc:confluence:9001]. Containment: bucket policy corrected, credentials rotated, affected merchants notified within 72 hours [doc:confluence:9001]. Forensics timeline for the Q3 bucket exposure: first access, detection, containment, and notification timestamps by merchant [doc:gdrive:1forensicsQ3]. Ho Ming: Heads up: the Q3 breach report stays restricted to the security space, so I cannot share it, but the customer-facing summary goes out on Friday [doc:slack:D0JDSH:1789741349.001000]. Jane Doe: Got it, thanks [doc:slack:D0JDSH:1789741349.001000]. Ho Ming: CANARY-SLACK-SEC [doc:slack:C0SEC:1789222949.000800]. Q3 breach report is final in the SEC space [doc:slack:C0SEC:1789222949.000800]."
+    },
+    {
+      "id": "cutover-slip-leads",
+      "user": "mlim",
+      "category": "privileged",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        1,
+        1
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "jira:DBM-45",
+        "confluence:7305",
+        "gdrive:1cutoverplan",
+        "slack:C0DBML:1790259749.000300"
+      ],
+      "grounded": [
+        7,
+        7
+      ],
+      "leaks": [],
+      "answer": "The staging replica is lagging about 40 minutes behind primary, which makes the consistency check fail at the end of the cutover dry run [doc:jira:DBM-45]. Blocked on infra resizing the replica volume; the resize is scheduled for Thursday [doc:jira:DBM-45]. If the renewal slips, the migration cutover loses vendor DBA cover for the weekend window [doc:confluence:7305]. Freeze writes at 02:00 SGT, let logical replication drain, run the consistency check, switch the application connection string, and unfreeze [doc:gdrive:1cutoverplan]. Rollback is a connection-string revert within the same window [doc:gdrive:1cutoverplan]. Michelle Lim: Leads only: the migration cutover may slip because the vendor DBA contract renewal is stuck in procurement [doc:slack:C0DBML:1790259749.000300]. Please keep this in the leads channel until procurement confirms [doc:slack:C0DBML:1790259749.000300]."
+    },
+    {
+      "id": "dlp-card-masked",
+      "user": "jdoe",
+      "category": "dlp",
+      "expect": "answer",
+      "no_result": false,
+      "facts": [
+        1,
+        1
+      ],
+      "citation_groups": [
+        1,
+        1
+      ],
+      "cited": [
+        "slack:C0PAY:1790259749.000500",
+        "slack:C0PAY:1790086949.000600"
+      ],
+      "grounded": [
+        4,
+        4
+      ],
+      "leaks": [],
+      "answer": "Jane Doe: Debugging a double charge: customer Tan Ah Kow (NRIC \u2022\u2022\u2022\u2022\u2022567D) says card \u2022\u2022\u2022\u20221111 was charged twice for order M-88213 [doc:slack:C0PAY:1790259749.000500]. Ho Ming: Please do not paste card numbers or NRICs in Slack: that breaks PCI DSS and the PDPA [doc:slack:C0PAY:1790259749.000500]. Jane Doe: PAY-231 certificate rotation job is running in staging and rotated the test certificate cleanly last night [doc:slack:C0PAY:1790086949.000600]. Production rollout after the cert-manager upgrade next sprint [doc:slack:C0PAY:1790086949.000600]."
+    },
+    {
+      "id": "breach-contractor",
+      "user": "ctr-lee",
+      "category": "restricted",
+      "expect": "no_result",
+      "no_result": true,
+      "facts": [
+        0,
+        0
+      ],
+      "citation_groups": [
+        0,
+        0
+      ],
+      "cited": [],
+      "grounded": [
+        0,
+        0
+      ],
+      "leaks": [],
+      "answer": "I couldn't find anything you have access to on that. Try rephrasing, or ask the owner of the relevant space or channel."
+    },
+    {
+      "id": "breach-engineer",
+      "user": "jr-tan",
+      "category": "restricted",
+      "expect": "no_result",
+      "no_result": true,
+      "facts": [
+        0,
+        0
+      ],
+      "citation_groups": [
+        0,
+        0
+      ],
+      "cited": [],
+      "grounded": [
+        0,
+        0
+      ],
+      "leaks": [],
+      "answer": "I couldn't find anything you have access to on that. Try rephrasing, or ask the owner of the relevant space or channel."
+    },
+    {
+      "id": "vendor-contract-engineer",
+      "user": "jr-tan",
+      "category": "restricted",
+      "expect": "no_result",
+      "no_result": true,
+      "facts": [
+        0,
+        0
+      ],
+      "citation_groups": [
+        0,
+        0
+      ],
+      "cited": [],
+      "grounded": [
+        0,
+        0
+      ],
+      "leaks": [],
+      "answer": "I couldn't find anything you have access to on that. Try rephrasing, or ask the owner of the relevant space or channel."
+    },
+    {
+      "id": "pan-logging-issue",
+      "user": "jdoe",
+      "category": "restricted",
+      "expect": "no_result",
+      "no_result": true,
+      "facts": [
+        0,
+        0
+      ],
+      "citation_groups": [
+        0,
+        0
+      ],
+      "cited": [],
+      "grounded": [
+        0,
+        0
+      ],
+      "leaks": [],
+      "answer": "I couldn't find anything you have access to on that. Try rephrasing, or ask the owner of the relevant space or channel."
+    },
+    {
+      "id": "migration-contractor",
+      "user": "ctr-lee",
+      "category": "restricted",
+      "expect": "no_result",
+      "no_result": true,
+      "facts": [
+        0,
+        0
+      ],
+      "citation_groups": [
+        0,
+        0
+      ],
+      "cited": [],
+      "grounded": [
+        0,
+        0
+      ],
+      "leaks": [],
+      "answer": "I couldn't find anything you have access to on that. Try rephrasing, or ask the owner of the relevant space or channel."
+    },
+    {
+      "id": "unknown-policy",
+      "user": "jdoe",
+      "category": "unanswerable",
+      "expect": "no_result",
+      "no_result": true,
+      "facts": [
+        0,
+        0
+      ],
+      "citation_groups": [
+        0,
+        0
+      ],
+      "cited": [],
+      "grounded": [
+        0,
+        0
+      ],
+      "leaks": [],
+      "answer": "I couldn't find anything you have access to on that. Try rephrasing, or ask the owner of the relevant space or channel."
+    },
+    {
+      "id": "out-of-scope",
+      "user": "mlim",
+      "category": "unanswerable",
+      "expect": "no_result",
+      "no_result": true,
+      "facts": [
+        0,
+        0
+      ],
+      "citation_groups": [
+        0,
+        0
+      ],
+      "cited": [],
+      "grounded": [
+        0,
+        0
+      ],
+      "leaks": [],
+      "answer": "I couldn't find anything you have access to on that. Try rephrasing, or ask the owner of the relevant space or channel."
+    }
+  ]
+}

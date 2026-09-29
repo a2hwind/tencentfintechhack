@@ -1,0 +1,65 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    name: backend (pytest, scenarios, leak eval, quality, scale)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: pytest -q
+      - name: Regenerate scenario walkthroughs and evidence (must not fail)
+        run: |
+          python scripts/run_scenarios.py
+          python scripts/leak_eval.py --runs 10
+          python scripts/quality_eval.py
+          python scripts/benchmark.py --sizes 1000 10000 --queries 100 --out /tmp/scale
+      - name: Audit chain verifies on a fresh run
+        run: |
+          python - <<'EOF'
+          import tempfile, pathlib
+          from fastapi.testclient import TestClient
+          from internal_brain.api.app import create_app
+          from internal_brain.config import Settings
+          d = pathlib.Path(tempfile.mkdtemp())
+          with TestClient(create_app(Settings(data_dir=d, sync_interval_s=0), poller=False)) as c:
+              c.post("/ask", json={"question": "latest runbook for the payment-service incident"}, headers={"X-User-Id": "jdoe"})
+          import subprocess, sys
+          sys.exit(subprocess.call([sys.executable, "-m", "internal_brain.audit.verify", "--db", str(d / "brain.db")]))
+          EOF
+
+  ui:
+    name: ui (type-check and build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ui
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+
+  docker:
+    name: docker images build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t internal-brain-api .
+      - run: docker build -t internal-brain-ui ./ui

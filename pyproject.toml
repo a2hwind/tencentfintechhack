@@ -1,0 +1,38 @@
+[project]
+name = "internal-brain"
+version = "0.1.0"
+description = "Company-wide answers, scoped to your permissions, fully auditable."
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "httpx>=0.27",
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "cryptography>=42",
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "matplotlib>=3.8"]  # matplotlib: the charts in docs/evidence/scale.md (scripts/benchmark.py)
+# Real embeddings (bge-small via sentence-transformers). Optional: the default
+# hashed embedder needs no download and keeps the demo dependency-free.
+embeddings = ["sentence-transformers>=3.0"]
+
+[project.scripts]
+brain-verify = "internal_brain.audit.verify:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["internal_brain*"]
+
+[tool.setuptools.package-data]
+"internal_brain.mocks" = ["fixtures/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning"]

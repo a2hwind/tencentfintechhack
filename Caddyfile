@@ -1,0 +1,26 @@
+# SITE_ADDRESS=:80 for plain HTTP on an IP; a real hostname turns on automatic HTTPS.
+{$SITE_ADDRESS}
+
+# Compress everything except the compliance console's live stream (server-sent events must not be buffered).
+@compressible {
+	not path /api/audit/stream*
+}
+encode @compressible gzip
+
+# The UI calls the API at /api/...; the prefix is stripped before proxying.
+# Slack's Event Subscriptions request URL is https://<host>/api/webhooks/slack.
+handle_path /api/* {
+	reverse_proxy api:8000
+}
+
+# The interactive API docs stay reachable for judges who want to try the negative cases themselves.
+handle /docs* {
+	reverse_proxy api:8000
+}
+handle /openapi.json {
+	reverse_proxy api:8000
+}
+
+handle {
+	reverse_proxy ui:3000
+}

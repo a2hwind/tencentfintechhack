@@ -1,0 +1,383 @@
+# Company A: the fixture every demo and test runs against.
+#
+# It is built around the challenge statement's own examples (the DB migration, the
+# payment-service runbook, the Q3 breach report, the payment-gateway space) so that
+# every judge recognises the scenarios. Timestamps are relative (days_ago / hours_ago)
+# and resolved when the fixture loads, so "last week" always means last week.
+#
+# Canary strings (CANARY-*) mark restricted text. Tests assert that no canary ever
+# reaches a prompt or an answer for a user who lacks the matching entitlement.
+
+company:
+  name: Company A
+  domain: company-a.com
+  slack_workspace: T0COMPA
+
+users:
+  - id: jdoe
+    name: Jane Doe
+    email: jdoe@company-a.com
+    title: Backend engineer
+    roles: [employee]
+    platform_ids: {confluence: jdoe, jira: jdoe, slack: U0JDOE, gdrive: jdoe@company-a.com}
+  - id: ctr-lee
+    name: Lee Wei
+    email: lee@vendorworks.example
+    title: External contractor (VendorWorks)
+    roles: [contractor]
+    slack_guest: true
+    platform_ids: {slack: U0CTRLEE, gdrive: lee@vendorworks.example}
+  - id: sec-ho
+    name: Ho Ming
+    email: sec-ho@company-a.com
+    title: Security lead
+    roles: [employee]
+    platform_ids: {confluence: sec-ho, jira: sec-ho, slack: U0SECHO, gdrive: sec-ho@company-a.com}
+  - id: jr-tan
+    name: Tan Jun
+    email: jr-tan@company-a.com
+    title: Junior engineer
+    roles: [employee]
+    platform_ids: {confluence: jr-tan, jira: jr-tan, slack: U0JRTAN, gdrive: jr-tan@company-a.com}
+  - id: mlim
+    name: Michelle Lim
+    email: mlim@company-a.com
+    title: Engineering lead
+    roles: [employee]
+    platform_ids: {confluence: mlim, jira: mlim, slack: U0MLIM, gdrive: mlim@company-a.com}
+  - id: compliance
+    name: Priya Nair
+    email: compliance@company-a.com
+    title: Compliance officer
+    roles: [employee, compliance]
+    platform_ids: {gdrive: compliance@company-a.com}
+  - id: admin
+    name: Ops Admin
+    email: admin@company-a.com
+    title: Ops admin (demo only)
+    roles: [employee, admin]
+    platform_ids: {}
+
+groups:
+  eng: [jdoe, jr-tan, sec-ho, mlim]
+  paygw: [jdoe, sec-ho, mlim]
+  security-team: [sec-ho]
+  leads: [sec-ho, mlim]
+
+# ---------------------------------------------------------------------------
+# Confluence: space permission AND page restriction, restriction inherited down the tree
+# ---------------------------------------------------------------------------
+confluence:
+  base_url: https://wiki.company-a.com
+  spaces:
+    - key: ENG
+      name: Engineering
+      read: {groups: [eng]}
+    - key: PAYGW
+      name: Payment Gateway
+      read: {groups: [paygw]}
+    - key: SEC
+      name: Security
+      read: {groups: [security-team]}
+  pages:
+    - id: "8812"
+      space: PAYGW
+      title: Payment-service incident runbook
+      author: sec-ho
+      version: 7
+      days_ago: 12
+      links: [jira:PAY-231]
+      body: |
+        Payment-service incident runbook (owner: payments on-call).
+
+        Step 1: Confirm the alert in #incidents and page the payments on-call engineer.
+
+        Step 2: Check gateway health at /internal/health and the upstream certificate expiry with paygw-cert-status.
+
+        Step 3: If the upstream certificate has expired or is within 24 hours of expiry, rotate it with the paygw-rotate job and restart the gateway pods one availability zone at a time.
+
+        Escalation: involve the security lead for any suspected data exposure, and open a PAY ticket for every incident (see PAY-231 for the certificate rotation automation).
+    - id: "8813"
+      space: PAYGW
+      title: Payment gateway architecture overview
+      author: jdoe
+      version: 3
+      days_ago: 40
+      body: |
+        The payment gateway is a stateless Go service in ap-southeast-1 behind an internal load balancer.
+
+        It terminates merchant TLS, validates requests, and forwards to the acquirer through an mTLS upstream whose client certificate is rotated every 90 days.
+
+        A standby gateway in ap-southeast-1b receives 0% of DNS weight in normal operation and is promoted during failover.
+    - id: "7201"
+      space: ENG
+      title: Auth service decision doc
+      author: mlim
+      version: 5
+      days_ago: 9
+      links: [slack:C0AUTH:auth-design]
+      body: |
+        Decision: the auth service issues short-lived access tokens (15 minutes) with rotating refresh tokens, and all public clients use PKCE.
+
+        Session revocation is handled by a revocation list in Redis checked on every refresh, which lets us log out a compromised session within one token lifetime.
+
+        Rejected alternative: long-lived opaque sessions in the database, because they make revocation cheap but every API call pays a database round trip.
+
+        Discussion happened in #auth-design; this page records the outcome.
+    - id: "7305"
+      space: ENG
+      title: Vendor contract review
+      author: mlim
+      version: 2
+      days_ago: 6
+      restrictions: {users: [sec-ho, mlim]}
+      body: |
+        CANARY-VENDOR-7305. Renewal terms for the database vendor DBA contract: the current rate card expires at the end of the quarter and procurement has not countersigned the renewal.
+
+        If the renewal slips, the migration cutover loses vendor DBA cover for the weekend window.
+    - id: "7306"
+      space: ENG
+      parent: "7305"
+      title: Vendor contract review - pricing annex
+      author: mlim
+      version: 1
+      days_ago: 6
+      body: |
+        CANARY-VENDOR-7306. Pricing annex: hourly rate and weekend uplift for the vendor DBA team.
+    - id: "9001"
+      space: SEC
+      title: Q3 breach incident report
+      author: sec-ho
+      version: 4
+      days_ago: 15
+      restrictions: {groups: [security-team]}
+      links: [gdrive:1forensicsQ3]
+      body: |
+        CANARY-SEC-9001. Q3 breach incident report (restricted to the security team).
+
+        On 4 August a misconfigured object storage bucket exposed export files containing merchant contact details for roughly six hours before the alert fired.
+
+        Containment: bucket policy corrected, credentials rotated, affected merchants notified within 72 hours. Forensics timeline is kept in the Security shared drive.
+
+# ---------------------------------------------------------------------------
+# Jira: project permission scheme (browse via role) AND issue security level
+# ---------------------------------------------------------------------------
+jira:
+  base_url: https://company-a.atlassian.net
+  projects:
+    - key: PAY
+      name: Payments
+      roles: {developers: [jdoe, sec-ho, mlim]}
+      security_levels: {"Security only": [sec-ho]}
+    - key: DBM
+      name: Database Migration
+      roles: {developers: [jdoe, jr-tan, mlim]}
+  issues:
+    - key: PAY-231
+      project: PAY
+      summary: Automate upstream certificate rotation for the payment gateway
+      status: In Progress
+      assignee: jdoe
+      reporter: mlim
+      days_ago: 5
+      links: [gdrive:1postmortemQ2]
+      description: |
+        Follow-up from the Q2 payment outage postmortem. Replace the manual paygw-rotate runbook step with a scheduled job that rotates the acquirer mTLS client certificate 14 days before expiry and alerts if rotation fails.
+      comments:
+        - {author: jdoe, days_ago: 5, text: "Job is in staging; production rollout waits on the cert-manager upgrade."}
+    - key: PAY-232
+      project: PAY
+      summary: Add a synthetic checkout probe that fails on 502s from the gateway
+      status: Done
+      assignee: jr-tan
+      reporter: mlim
+      days_ago: 20
+      links: [gdrive:1postmortemQ2]
+      description: |
+        Follow-up from the Q2 payment outage postmortem. A synthetic checkout every 60 seconds from two regions, paging when two consecutive probes fail.
+      comments:
+        - {author: jr-tan, days_ago: 20, text: "Deployed. Paging routed to the payments on-call rotation."}
+    - key: PAY-260
+      project: PAY
+      summary: Card PAN fragments written to gateway debug logs
+      status: In Progress
+      assignee: sec-ho
+      reporter: sec-ho
+      security_level: Security only
+      days_ago: 4
+      description: |
+        CANARY-PAY-260. Debug logging at level TRACE writes the first six digits of card numbers to the gateway log stream. Remove the field from the log struct and purge the retained logs.
+    - key: DBM-42
+      project: DBM
+      summary: Migrate the orders table to the new PostgreSQL 16 cluster
+      status: In Progress
+      assignee: jdoe
+      reporter: mlim
+      days_ago: 2
+      links: [gdrive:1cutoverplan]
+      description: |
+        Migration of the orders table (1.2 TB) to the new PostgreSQL 16 cluster using logical replication. Progress: 60% of partitions copied and verified.
+      comments:
+        - {author: jdoe, days_ago: 2, text: "Cutover is planned for Tuesday 29 September in the 02:00-04:00 SGT window, pending a clean second dry run."}
+    - key: DBM-45
+      project: DBM
+      summary: Staging replica lag blocks the migration dry run
+      status: Blocked
+      assignee: jr-tan
+      reporter: jdoe
+      days_ago: 1
+      description: |
+        The staging replica is lagging about 40 minutes behind primary, which makes the consistency check fail at the end of the cutover dry run. Blocked on infra resizing the replica volume; the resize is scheduled for Thursday.
+
+# ---------------------------------------------------------------------------
+# Slack: channel membership; public channels readable by every workspace member;
+# a DM is its participants. Items are threads (root message plus replies).
+# ---------------------------------------------------------------------------
+slack:
+  base_url: https://company-a.slack.com
+  channels:
+    - {id: C0PAY, name: payments, private: false, members: [jdoe, sec-ho, mlim]}
+    - {id: C0DBM, name: db-migration, private: true, members: [jdoe, jr-tan, mlim]}
+    - {id: C0DBML, name: db-migration-leads, private: true, members: [mlim, sec-ho]}
+    - {id: C0INC, name: incidents, private: false, members: [jdoe, sec-ho, mlim, jr-tan]}
+    - {id: C0AUTH, name: auth-design, private: false, members: [jdoe, mlim]}
+    - {id: C0SEC, name: security-private, private: true, members: [sec-ho, mlim]}
+    - {id: C0VEND, name: vendor-portal, private: true, members: [jdoe, mlim, ctr-lee]}
+  dms:
+    - {id: D0JDSH, members: [jdoe, sec-ho]}
+  threads:
+    - ref: db-blockers
+      channel: C0DBM
+      days_ago: 3
+      messages:
+        - {user: jr-tan, text: "Blocker: staging replica lag is at 40 minutes again and the cutover dry run keeps failing on the final consistency check."}
+        - {user: jdoe, minutes: 12, text: "Raised DBM-45 for it. Infra says the replica volume resize lands on Thursday."}
+        - {user: mlim, minutes: 30, text: "OK. If the resize slips past Thursday we move the cutover out by a week."}
+        - {user: jr-tan, minutes: 45, text: "If you need to check the lag by hand, the staging replica password is Tr0ub4dor&3. I will rotate it after the dry run."}
+    - ref: db-progress
+      channel: C0DBM
+      days_ago: 5
+      messages:
+        - {user: jdoe, text: "Migration status: 60% of the orders partitions are copied to the PostgreSQL 16 cluster and verified. DBM-42 has the running notes."}
+        - {user: jr-tan, minutes: 20, text: "Second dry run scheduled once the replica is healthy."}
+    - ref: leads-cutover
+      channel: C0DBML
+      days_ago: 2
+      messages:
+        - {user: mlim, text: "Leads only: the migration cutover may slip because the vendor DBA contract renewal is stuck in procurement. CANARY-LEADS-7731. Please keep this in the leads channel until procurement confirms."}
+        - {user: sec-ho, minutes: 15, text: "Understood. I will raise it at the ops review on Friday."}
+    - ref: q2-outage
+      channel: C0INC
+      days_ago: 75
+      messages:
+        - {user: jdoe, text: "Payment gateway returning 502s for all merchants since 03:10. Investigating."}
+        - {user: sec-ho, minutes: 25, text: "Upstream mTLS client certificate expired at 03:00. Rotating now."}
+        - {user: jdoe, minutes: 58, text: "Recovered at 04:08 after the certificate rotation and gateway restart. Postmortem doc is in the Engineering drive."}
+    # Realistic data-hygiene slip for the DLP demo: customer data pasted into a public channel.
+    # The values are published test data (Visa test PAN, sample NRIC with a valid checksum).
+    - ref: payments-double-charge
+      channel: C0PAY
+      days_ago: 2
+      messages:
+        - {user: jdoe, text: "Debugging a double charge: customer Tan Ah Kow (NRIC S1234567D) says card 4111 1111 1111 1111 was charged twice for order M-88213. Refund to his bank account 123-456789-001 once the acquirer confirms?"}
+        - {user: sec-ho, minutes: 9, text: "Please do not paste card numbers or NRICs in Slack: that breaks PCI DSS and the PDPA. I have opened a support ticket for the refund; delete the message above."}
+    - ref: pay-cert-automation
+      channel: C0PAY
+      days_ago: 4
+      messages:
+        - {user: jdoe, text: "PAY-231 certificate rotation job is running in staging and rotated the test certificate cleanly last night."}
+        - {user: mlim, minutes: 40, text: "Nice. Production rollout after the cert-manager upgrade next sprint."}
+    - ref: auth-design
+      channel: C0AUTH
+      days_ago: 10
+      links: [confluence:7201]
+      messages:
+        - {user: mlim, text: "Auth service design: proposal is short-lived access tokens with rotating refresh tokens, PKCE everywhere, revocation list in Redis. Objections?"}
+        - {user: jdoe, minutes: 35, text: "Refresh rotation is fine. Can we cap access tokens at 15 minutes so revocation lands within one lifetime?"}
+        - {user: mlim, minutes: 120, text: "Agreed, 15 minutes. Written up in the Auth service decision doc: https://wiki.company-a.com/pages/7201"}
+    - ref: sec-breach
+      channel: C0SEC
+      days_ago: 14
+      links: [confluence:9001]
+      messages:
+        - {user: sec-ho, text: "CANARY-SLACK-SEC. Q3 breach report is final in the SEC space. Merchant notifications went out within the 72 hour window."}
+        - {user: mlim, minutes: 50, text: "Thanks. Keep the report restricted to the security team until legal signs off on the summary."}
+    - ref: vendor-spec
+      channel: C0VEND
+      days_ago: 7
+      links: [gdrive:1vendorspec]
+      messages:
+        - {user: ctr-lee, text: "Vendor portal API spec v2 is uploaded to the shared Vendor portal folder. Main change: webhook retries with exponential backoff."}
+        - {user: jdoe, minutes: 90, text: "Thanks, will review the retry section this week."}
+    - ref: dm-breach-summary
+      channel: D0JDSH
+      days_ago: 8
+      messages:
+        - {user: sec-ho, text: "Heads up: the Q3 breach report stays restricted to the security space, so I cannot share it, but the customer-facing summary goes out on Friday."}
+        - {user: jdoe, minutes: 5, text: "Got it, thanks."}
+
+# ---------------------------------------------------------------------------
+# Google Drive: shared-drive membership, folder inheritance, direct grants, link sharing
+# ---------------------------------------------------------------------------
+gdrive:
+  base_url: https://drive.google.com
+  drives:
+    - {id: ENGDRIVE, name: Engineering, members: {groups: [eng]}}
+    - {id: SECDRIVE, name: Security, members: {groups: [security-team]}}
+  folders:
+    - {id: FVENDOR, name: Vendor portal (external), drive: ENGDRIVE, permissions: {users: [ctr-lee]}}
+  files:
+    - id: 1postmortemQ2
+      name: Q2 payment outage postmortem
+      drive: ENGDRIVE
+      owner: jdoe
+      mime: application/vnd.google-apps.document
+      days_ago: 60
+      links: [jira:PAY-231, jira:PAY-232]
+      body: |
+        Q2 payment outage postmortem.
+
+        Impact: all merchant checkouts failed with HTTP 502 for 58 minutes on 14 June between 03:10 and 04:08 SGT.
+
+        Root cause: the acquirer mTLS client certificate on the payment gateway expired at 03:00 and rotation was a manual runbook step that nobody was paged for.
+
+        Follow-ups: PAY-231 automates the certificate rotation with a scheduled job, and PAY-232 adds a synthetic checkout probe so a gateway 502 pages within two minutes.
+    - id: 1cutoverplan
+      name: DB migration cutover plan
+      drive: ENGDRIVE
+      owner: mlim
+      mime: application/vnd.google-apps.document
+      days_ago: 8
+      links: [jira:DBM-42]
+      body: |
+        Cutover plan for the orders table migration (DBM-42).
+
+        Freeze writes at 02:00 SGT, let logical replication drain, run the consistency check, switch the application connection string, and unfreeze. Rollback is a connection-string revert within the same window.
+    - id: 1vendorspec
+      name: Vendor portal API spec v2
+      drive: ENGDRIVE
+      folder: FVENDOR
+      owner: ctr-lee
+      mime: application/pdf
+      days_ago: 7
+      body: |
+        Vendor portal API specification, version 2.
+
+        Webhooks are retried with exponential backoff (1, 2, 4, 8 minutes) up to five attempts, and every delivery carries an idempotency key so a duplicate retry is ignored.
+    - id: 1onboarding
+      name: Engineering onboarding checklist
+      drive: ENGDRIVE
+      owner: mlim
+      mime: application/vnd.google-apps.document
+      days_ago: 90
+      anyone_with_link: true
+      body: |
+        Engineering onboarding checklist: laptop, SSO, Slack channels, Confluence spaces, and the on-call shadowing schedule for the first month.
+    - id: 1forensicsQ3
+      name: Q3 breach forensics timeline
+      drive: SECDRIVE
+      owner: sec-ho
+      mime: application/vnd.google-apps.spreadsheet
+      days_ago: 16
+      body: |
+        CANARY-DRIVE-SEC. Forensics timeline for the Q3 bucket exposure: first access, detection, containment, and notification timestamps by merchant.
