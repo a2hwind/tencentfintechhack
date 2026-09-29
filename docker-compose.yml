@@ -1,12 +1,15 @@
 # One Tencent Cloud Lighthouse / CVM instance in Singapore runs all three:
-#   caddy (HTTPS) -> ui (Next.js) and /api -> api (FastAPI)
+#   caddy (HTTPS, optional password) -> ui (Next.js) and /api -> api (FastAPI)
 #
 #   docker compose up -d --build
-#   SITE_ADDRESS=brain.example.com docker compose up -d --build   # real domain => automatic HTTPS
+# Settings come from .env next to this file: SITE_ADDRESS=brain.example.com turns on automatic HTTPS,
+# DEMO_PASSWORD=... puts the site behind a password prompt. Putting it online: docs/deploy.md.
 services:
   api:
     build: .
     environment:
+      # Behind Caddy the API lives at /api; the root path makes its interactive docs (/api/docs) call /api too.
+      UVICORN_ROOT_PATH: /api
       BRAIN_DATA_DIR: /data
       SYNC_INTERVAL_S: "60"
       ENTITLEMENT_TTL_S: "60"
@@ -42,13 +45,18 @@ services:
 
   caddy:
     image: caddy:2-alpine
+    # Hashes DEMO_PASSWORD (when set) and starts Caddy with it; see deploy/caddy-start.sh.
+    command: ["/bin/sh", "/etc/caddy/caddy-start.sh"]
     ports:
       - "80:80"
       - "443:443"
     environment:
       SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      DEMO_USER: ${DEMO_USER:-judge}
+      DEMO_PASSWORD: ${DEMO_PASSWORD:-}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./deploy/caddy-start.sh:/etc/caddy/caddy-start.sh:ro
       - caddy-data:/data
       - caddy-config:/config
     depends_on:

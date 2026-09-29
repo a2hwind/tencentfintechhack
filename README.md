@@ -63,12 +63,13 @@ python scripts/quality_eval.py      # docs/evidence/quality.md (make quality)
 python scripts/benchmark.py         # docs/evidence/scale.md, ~3 min (make benchmark)
 ```
 
-Docker (API + UI + Caddy on one instance; a real `SITE_ADDRESS` turns on HTTPS):
+Docker (API + UI + Caddy on one instance) at `http://localhost`, API docs at `/api/docs`:
 
 ```bash
 docker compose up -d --build
-SITE_ADDRESS=brain.example.com docker compose up -d --build
 ```
+
+Settings come from `.env`: `SITE_ADDRESS=brain.example.com` turns on HTTPS, `DEMO_PASSWORD=...` puts the site behind a password prompt. [docs/deploy.md](docs/deploy.md) puts the demo online on a Tencent Cloud Lighthouse server in Singapore, step by step.
 
 ## The demo, in seven minutes
 
@@ -118,8 +119,9 @@ internal_brain/
 ui/                Next.js: chat with evidence drawer, presenter, compare, compliance console, admin panel
 tests/             scenarios, audit chain, permissions, guardrails, glass box, LLM path, real Slack (strict fake),
                    scale (randomized oracle), quality floors, vector cache, demo operations, leak bank
-docs/              architecture.md, compliance.md, submission.md, scenarios/, evidence/, screenshots/, codebuddy/
+docs/              architecture.md, compliance.md, submission.md, deploy.md, scenarios/, evidence/, screenshots/, codebuddy/
 scripts/           run_scenarios, leak_eval, quality_eval, benchmark, smoke_llm, slack_setup, screenshots, cover, tamper_demo
+deploy/            caddy-start.sh: Caddy's start command (hashes DEMO_PASSWORD for the optional password prompt)
 ```
 
 ## API surface

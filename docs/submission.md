@@ -59,7 +59,7 @@ _Check the handbook's exact wording on CodeBuddy and WorkBuddy. If it requires t
 - [x] 16:9 cover image — `docs/cover-1920x1080.png` and `docs/cover-380x216.png` (regenerate with `python scripts/cover.py`)
 - [ ] **(team)** At least three CodeBuddy or WorkBuddy screenshots — `docs/codebuddy/`
 - [ ] **(team)** Optional 5–8 minute video: record the guided run in `/presenter` (the beats below)
-- [ ] **(team)** Live URL: `docker compose up -d --build` on a Lighthouse or CVM instance in Singapore with `SITE_ADDRESS` set
+- [ ] **(team)** Live URL: a Lighthouse instance in Singapore, `DEMO_PASSWORD` and `SITE_ADDRESS` set, step by step in `docs/deploy.md`; put the URL, user `judge` and the password in the form
 - [ ] **(team)** Public GitHub repository link
 - [ ] Name the case study at the start of the presentation: FinTech track, Aspire, The Internal Brain
 
