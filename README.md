@@ -69,7 +69,7 @@ Docker (API + UI + Caddy on one instance) at `http://localhost`, API docs at `/a
 docker compose up -d --build
 ```
 
-Settings come from `.env`: `SITE_ADDRESS=brain.example.com` turns on HTTPS, `DEMO_PASSWORD=...` puts the site behind a password prompt. [docs/deploy.md](docs/deploy.md) puts the demo online on a Tencent Cloud Lighthouse server in Singapore, step by step.
+Settings come from `.env`: `SITE_ADDRESS=brain.example.com` turns on HTTPS, `DEMO_PASSWORD=...` puts the site behind a password prompt. To put the demo online, [docs/deploy.md](docs/deploy.md) covers Render's free tier (`render.yaml`, one container from `deploy/render/`) and your own server (Tencent Cloud Lighthouse in Singapore), step by step.
 
 ## The demo, in seven minutes
 
@@ -121,7 +121,7 @@ tests/             scenarios, audit chain, permissions, guardrails, glass box, L
                    scale (randomized oracle), quality floors, vector cache, demo operations, leak bank
 docs/              architecture.md, compliance.md, submission.md, deploy.md, scenarios/, evidence/, screenshots/, codebuddy/
 scripts/           run_scenarios, leak_eval, quality_eval, benchmark, smoke_llm, slack_setup, screenshots, cover, tamper_demo
-deploy/            caddy-start.sh: Caddy's start command (hashes DEMO_PASSWORD for the optional password prompt)
+deploy/            caddy-start.sh (hashes DEMO_PASSWORD for the optional password prompt); render/: one-container image for Render (render.yaml)
 ```
 
 ## API surface

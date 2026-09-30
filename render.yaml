@@ -1,0 +1,28 @@
+# Render Blueprint: New > Blueprint in the Render dashboard, pick this repository, fill in the two secrets.
+# One free web service in Singapore runs the API, the UI and Caddy together (deploy/render/). docs/deploy.md
+services:
+  - type: web
+    name: internal-brain
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./deploy/render/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      # The site asks for this password (user: judge). Leave it empty to make the demo open to anyone.
+      - key: DEMO_PASSWORD
+        sync: false
+      # Tencent TokenHub key. Leave it empty to run the offline answerer (no model calls, no cost).
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_BASE_URL
+        value: https://tokenhub-intl.tencentcloudmaas.com/v1
+      - key: LLM_MODEL_PLANNER
+        value: hy3
+      - key: LLM_MODEL_ANSWER
+        value: hy3
+      # The guided demo's revocation beats use the mock Slack's admin controls.
+      - key: SLACK_MODE
+        value: mock

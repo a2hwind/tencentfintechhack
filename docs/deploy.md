@@ -1,6 +1,24 @@
 # Put the demo online
 
-One Tencent Cloud Lighthouse server in Singapore runs the same three containers as a laptop: Caddy in front (HTTPS, optional password), the UI, and the API. About 20 minutes the first time.
+Two ways, same app:
+
+- **Render, free.** No server to manage: Render builds `deploy/render/Dockerfile` from the repository and runs the API, the UI and Caddy in one container. A free instance sleeps after 15 minutes without visitors and takes about a minute to wake, and every wake starts a fresh demo (new index, new audit chain).
+- **Your own server** (Tencent Cloud Lighthouse, or any Ubuntu machine). Always on, keeps its audit log, real HTTPS on your own name. About 20 minutes.
+
+## Render (free)
+
+1. Push the repository to GitHub; `render.yaml` at its root describes the service.
+2. At [render.com](https://render.com), sign in with GitHub, then **New**, **Blueprint**, and pick the repository (for a private repository, give Render access to it when GitHub asks).
+3. Render shows one service, `internal-brain` (free, Singapore), and asks for two values:
+   - `DEMO_PASSWORD`: the password the site asks for, with the user name `judge`. Leave it empty and the demo is open to anyone.
+   - `LLM_API_KEY`: the TokenHub key. Leave it empty to run the offline answerer (no model calls, nothing to pay).
+4. **Deploy Blueprint.** The first build takes about 5 to 10 minutes. The address is at the top of the service's page (`https://internal-brain-….onrender.com`); add `/presenter`.
+
+Every push to `main` redeploys. A free instance has 0.1 CPU and 512 MB of memory; the three processes use about 230 MB. Open the link a minute before you show it to anyone, so it is awake. Keep Slack on the mock here: a sleeping service misses Slack's events.
+
+## Your own server
+
+One Tencent Cloud Lighthouse server in Singapore runs the same three containers as a laptop: Caddy in front (HTTPS, optional password), the UI, and the API. Any Ubuntu machine with ports 80 and 443 open works the same way from step 2.
 
 ## 1. Create the server
 
@@ -92,7 +110,8 @@ Set `SLACK_MODE=real`, `SLACK_BOT_TOKEN`, `SLACK_SIGNING_SECRET` and `SLACK_USER
 - The demo has no login of its own: identity is the user switcher, so anyone past the password can act as any demo user, admin and compliance included. The password is what keeps the public internet out; share it only in the submission form (URL, user `judge`, password).
 - The mock platforms' own APIs (`/api/mock/...`) are not served publicly; the adapters reach them in-process.
 - The interactive API docs are at `/api/docs` (`/docs` redirects there); their "Try it out" requests go through `/api` and carry the `X-User-Id` header you type.
-- When judging is over, delete the instance.
+- `/api/health` also stays open, for the hosting platform's health check; it reports the running modes, nothing from the documents.
+- When judging is over, delete the instance (or, on Render, clear the password and the model key to leave an open demo that costs nothing).
 
 ## If something is off
 

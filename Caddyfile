@@ -1,15 +1,18 @@
-# One Caddy in front of the UI (/) and the API (/api, prefix stripped). Set in .env, read by docker compose:
+# One Caddy in front of the UI (/) and the API (/api, prefix stripped). docker compose reads these from .env;
+# on Render they are set by deploy/render/start.sh and the service's environment:
 #   SITE_ADDRESS   :80 serves plain HTTP on the server's IP; a hostname (brain.example.com) turns on automatic HTTPS.
-#   DEMO_PASSWORD  puts the whole site behind the browser's password prompt (user DEMO_USER, default "judge").
-#                  deploy/caddy-start.sh hashes it at startup and sets DEMO_AUTH=on. Slack's webhook stays open:
-#                  Slack cannot answer a password prompt, and the API rejects any request Slack did not sign.
+#   DEMO_PASSWORD  puts the site behind the browser's password prompt (user DEMO_USER, default "judge").
+#                  deploy/caddy-start.sh hashes it at startup and sets DEMO_AUTH=on. Two paths stay open: Slack's
+#                  webhook (Slack cannot answer a password prompt; the API rejects any request Slack did not sign)
+#                  and the health check the hosting platform polls.
+#   API_UPSTREAM, UI_UPSTREAM  where the API and the UI listen (compose: the api and ui services).
 
 (auth-off) {
 }
 
 (auth-on) {
 	@locked {
-		not path /api/webhooks/slack
+		not path /api/webhooks/slack /api/health
 	}
 	basic_auth @locked {
 		{$DEMO_USER:judge} {$DEMO_PASSWORD_HASH}
@@ -35,13 +38,13 @@
 	# UVICORN_ROOT_PATH=/api, so its interactive docs at /api/docs send their requests to /api too).
 	# Slack's Event Subscriptions request URL is https://<host>/api/webhooks/slack.
 	handle_path /api/* {
-		reverse_proxy api:8000
+		reverse_proxy {$API_UPSTREAM:api:8000}
 	}
 
 	# /docs kept as a short link for judges who want to try the negative cases themselves.
 	redir /docs /api/docs
 
 	handle {
-		reverse_proxy ui:3000
+		reverse_proxy {$UI_UPSTREAM:ui:3000}
 	}
 }
