@@ -29,7 +29,11 @@ RUN python3 -m venv /opt/venv && pip install --no-cache-dir .
 COPY scripts ./scripts
 COPY --from=ui /ui/.next/standalone ./ui
 COPY --from=ui /ui/.next/static ./ui/.next/static
-COPY --from=caddy /usr/bin/caddy /usr/local/bin/caddy
+# The official image gives caddy a file capability (to bind ports below 1024). Render's containers do not
+# allow it: running such a binary there fails with "Operation not permitted". Copying it with install drops
+# the capability; the service listens on $PORT (10000), which needs none.
+COPY --from=caddy /usr/bin/caddy /tmp/caddy
+RUN install -m 0755 /tmp/caddy /usr/local/bin/caddy && rm /tmp/caddy
 COPY Caddyfile /etc/caddy/Caddyfile
 COPY deploy/caddy-start.sh deploy/render/start.sh ./deploy/
 EXPOSE 10000

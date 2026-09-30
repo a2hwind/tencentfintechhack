@@ -6,7 +6,8 @@ set -uo pipefail
 cd /app
 
 export UVICORN_ROOT_PATH=/api
-uvicorn internal_brain.api.app:app --host 127.0.0.1 --port 8000 --timeout-graceful-shutdown 5 &
+# One worker: the audit stream and the entitlement cache live in this process (Render sets WEB_CONCURRENCY).
+uvicorn internal_brain.api.app:app --host 127.0.0.1 --port 8000 --workers 1 --timeout-graceful-shutdown 5 &
 (cd /app/ui && PORT=3000 HOSTNAME=127.0.0.1 exec node server.js) &
 
 export SITE_ADDRESS=":${PORT:-10000}" API_UPSTREAM=127.0.0.1:8000 UI_UPSTREAM=127.0.0.1:3000
