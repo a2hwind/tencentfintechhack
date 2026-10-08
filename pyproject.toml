@@ -14,7 +14,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "matplotlib>=3.8"]  # matplotlib: the charts in docs/evidence/scale.md (scripts/benchmark.py)
+dev = [
+    "pytest>=8",
+    "matplotlib>=3.8",  # matplotlib: the charts in docs/evidence/scale.md (scripts/benchmark.py)
+    "python-multipart>=0.0.18",  # fake_slack.py parses form posts via request.form()
+]
 # Real embeddings (bge-small via sentence-transformers). Optional: the default
 # hashed embedder needs no download and keeps the demo dependency-free.
 embeddings = ["sentence-transformers>=3.0"]

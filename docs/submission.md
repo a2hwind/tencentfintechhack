@@ -44,7 +44,7 @@ _Write this from what actually happened: judges can ask about it at Demo Day. Th
 
 - **Design first (22 Sep):** the solution design (permission model, the two gates, the audit chain, the trade-offs) was written before any code.
 - **Core build (22–27 Sep):** the backend, mock platforms, UI, tests and evidence were built from that design with an AI coding assistant (Claude, in Cowork). The four shared contracts (adapter interface, chunk record, audit entry, `/ask` response) were written as pydantic models before any feature code.
-- **CodeBuddy (team, [dates]):** [what the team built in CodeBuddy, e.g. the real Google Drive adapter with its strict API fake and tests]. Screenshots in `docs/codebuddy/` show [the prompt, the change, the tests passing].
+- **CodeBuddy (9 Oct):** CodeBuddy diagnosed and fixed the CI failure on a clean install (the Slack fake's form parsing needed `python-multipart` in the dev extras) and ran the full suite in a clean Python 3.12 container: 102 passed. Screenshots in `docs/codebuddy/` show the prompt and diagnosis, the change, and the passing run; `docs/codebuddy/sessions.md` logs each one.
 
 _Check the handbook's exact wording on CodeBuddy and WorkBuddy. If it requires the whole project to be built there, ask the organisers before submitting whether a project started with another assistant qualifies._
 
